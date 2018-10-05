@@ -121,8 +121,15 @@ with detection_graph.as_default():
           [boxes, scores, classes, num_detections],
           feed_dict={image_tensor: image_np_expanded})
 
-      output = [category_index.get(value) for index,value in enumerate(classes[0]) if scores[0,index] > 0.5]
-      print(output)
+      threshold = 0.5
+      objects = []
+      for index, value in enumerate(classes[0]):
+          object_dict = {}
+          if scores[0,index] > threshold:
+              object_dict = [(category_index.get(value).get('name'))]
+              objects.append(object_dict)
+      print (objects)
+
       # Visualization of the results of a detection.
       vis_util.visualize_boxes_and_labels_on_image_array(
           image_np,
