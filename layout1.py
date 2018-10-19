@@ -119,20 +119,12 @@ class MainWindow(QWidget):
         ret, image = self.cap.read()
         # convert image to RGB format
         image = cv2.cvtColor(image, cv2.COLOR_BGR2RGB)
-        # get image infos
-        height, width, channel = image.shape
-        step = channel * width
-        # create QImage from image
-        qImg = QImage(image.data, width, height, step, QImage.Format_ARGB32)
-        # show image in img_label
-        self.ui.image_label.setPixmap(QPixmap.fromImage(qImg))
 
         with detection_graph.as_default():
             with tf.Session(graph=detection_graph) as sess:
 
-                    imageCon = qimage2ndarray.rgb_view(qImg)
                     #inserted code from capture.py
-                    image_np_expanded = np.expand_dims(qImg, axis=0)
+                    image_np_expanded = np.expand_dims(image, axis=0)
                     image_tensor = detection_graph.get_tensor_by_name('image_tensor:0')
                     # Each box represents a part of the image where a particular object was detected.
                     boxes = detection_graph.get_tensor_by_name('detection_boxes:0')
@@ -166,6 +158,12 @@ class MainWindow(QWidget):
                         line_thickness=8)
 
                     #end of insert
+                    #convert from cv2 image to qimage
+                    height, width, channel = image.shape
+                    bytesPerLine = 3 * width
+                    qImg = QImage(image.data, width, height, bytesPerLine, QImage.Format_RGB888)
+                    # show image in img_label
+                    self.ui.image_label.setPixmap(QPixmap.fromImage(qImg))
 
     # start/stop timer
     def controlTimer(self):
