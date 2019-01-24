@@ -5,7 +5,7 @@ import sys
 import tarfile
 import tensorflow as tf
 import zipfile
-import qimage2ndarray
+#import qimage2ndarray
 
 from collections import defaultdict
 from io import StringIO
@@ -78,10 +78,10 @@ label_map = label_map_util.load_labelmap(os.path.join(r'C:\Users\yan_h\Documents
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
 
-def load_image_into_numpy_array(image):
+'''def load_image_into_numpy_array(image):
   (im_width, im_height) = image.size
   return np.array(image.getdata()).reshape(
-      (im_height, im_width, 3)).astype(np.uint8)
+      (im_height, im_width, 3)).astype(np.uint8)'''
 
 
 class MainWindow(QWidget):
@@ -141,9 +141,9 @@ class MainWindow(QWidget):
                     threshold = 0.5
                     objects = []
                     for index, value in enumerate(classes[0]):
-                        object_dict = {}
+                        #object_dict = {}
                         if scores[0,index] > threshold:
-                            object_dict = [(category_index.get(value).get('name'))]
+                            object_dict = category_index.get(value).get('name')
                             objects.append(object_dict)
                     print (objects)
 
@@ -172,7 +172,7 @@ class MainWindow(QWidget):
             # create video capture
             self.cap = cv2.VideoCapture(0)
             # start timer
-            self.timer.start(10)
+            self.timer.start(5)
             # update control_bt text
             self.ui.control_bt.setText("Stop")
         # if timer is started

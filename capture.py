@@ -10,12 +10,13 @@ from collections import defaultdict
 from io import StringIO
 from matplotlib import pyplot as plt
 from PIL import Image
+from collections import Counter
 
 import cv2
 cap = cv2.VideoCapture(0)
 
 # This is needed since the notebook is stored in the object_detection folder.
-sys.path.append(r"C:\Users\yan_h\Documents\GitHub\models\research\object_detection")
+sys.path.append(r"C:\Users\yan_h\Desktop\object_detection")
 
 
 # ## Object detection imports
@@ -39,31 +40,14 @@ from object_detection.utils import visualization_utils as vis_util
 # In[4]:
 
 # What model to download.
-MODEL_NAME = 'ssd_mobilenet_v1_coco_11_06_2017'
-MODEL_FILE = MODEL_NAME + '.tar.gz'
-DOWNLOAD_BASE = 'http://download.tensorflow.org/models/object_detection/'
-
+MODEL_NAME = 'ssd_mobilenet_v1_coco_2018_01_28'
 # Path to frozen detection graph. This is the actual model that is used for the object detection.
-PATH_TO_CKPT = MODEL_NAME + '/frozen_inference_graph.pb'
+PATH_TO_CKPT = os.path.join(r'C:\Users\yan_h\Desktop\object_detection',MODEL_NAME,'frozen_inference_graph.pb')
 
 # List of the strings that is used to add correct label for each box.
 PATH_TO_LABELS = os.path.join('data', 'mscoco_label_map.pbtxt')
 
 NUM_CLASSES = 90
-
-
-# ## Download Model
-
-# In[5]:
-
-opener = urllib.request.URLopener()
-opener.retrieve(DOWNLOAD_BASE + MODEL_FILE, MODEL_FILE)
-tar_file = tarfile.open(MODEL_FILE)
-for file in tar_file.getmembers():
-  file_name = os.path.basename(file.name)
-  if 'frozen_inference_graph.pb' in file_name:
-    tar_file.extract(file, os.getcwd())
-
 
 # ## Load a (frozen) Tensorflow model into memory.
 
@@ -83,20 +67,9 @@ with detection_graph.as_default():
 
 # In[7]:
 
-label_map = label_map_util.load_labelmap(os.path.join(r'C:\Users\yan_h\Documents\GitHub\models\research\object_detection\data', 'mscoco_label_map.pbtxt'))
+label_map = label_map_util.load_labelmap(os.path.join(r'C:\Users\yan_h\Desktop\object_detection\data', 'mscoco_label_map.pbtxt'))
 categories = label_map_util.convert_label_map_to_categories(label_map, max_num_classes=NUM_CLASSES, use_display_name=True)
 category_index = label_map_util.create_category_index(categories)
-
-
-# ## Helper code
-
-# In[8]:
-
-def load_image_into_numpy_array(image):
-  (im_width, im_height) = image.size
-  return np.array(image.getdata()).reshape(
-      (im_height, im_width, 3)).astype(np.uint8)
-
 
 # # Detection
 
@@ -120,16 +93,34 @@ with detection_graph.as_default():
       (boxes, scores, classes, num_detections) = sess.run(
           [boxes, scores, classes, num_detections],
           feed_dict={image_tensor: image_np_expanded})
-
+      total = 0
+      personTotal = 0
+      chairTotal = 0
       threshold = 0.5
       objects = []
       for index, value in enumerate(classes[0]):
-          object_dict = {}
+          object2 = {}
           if scores[0,index] > threshold:
-              object_dict = [(category_index.get(value).get('name'))]
-              objects.append(object_dict)
-      print (objects)
+              object2 = category_index.get(value).get('name')
+              objects.append(object2)
 
+      detectedItems = Counter(objects)
+      print(detectedItems)
+      for k,v in detectedItems.items():
+          if k == 'person':
+              personTotal = v * 1
+          elif k == 'chair':
+              chairTotal = v * 2
+
+      total = personTotal + chairTotal
+
+      font                   = cv2.FONT_HERSHEY_SIMPLEX
+      bottomLeftCornerOfText = (10,400)
+      fontScale              = 1
+      fontColor              = (255,255,255)
+      lineType               = 2
+
+      cv2.putText(image_np,str(total),bottomLeftCornerOfText,font,fontScale,fontColor,lineType)
       # Visualization of the results of a detection.
       vis_util.visualize_boxes_and_labels_on_image_array(
           image_np,
